@@ -206,16 +206,23 @@ resource "azurerm_lb_backend_address_pool" "backend_address_pool" {
 }
 
 
-###########/ Associate NIC with NSG /##############################################
+###########/ Associate NIC (web) with NSG /########################################
 resource "azurerm_network_interface_security_group_association" "nic-association-nsg" {
-  count                     = var.nic_association_instances
+  count                     = var.nic_app_association_instances
   network_interface_id      = module.vm_app.*.nic_ids[count.index].id
+  network_security_group_id = azurerm_network_security_group.nsg.id
+}
+
+###########/ Associate NIC (db) with NSG /#########################################
+resource "azurerm_network_interface_security_group_association" "nic-association-db-nsg" {
+  count                     = var.nic_db_association_instances
+  network_interface_id      = module.vm_db.*.nic_ids[count.index].id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
 ###########/ Associate NIC with backend pool /#####################################
 resource "azurerm_network_interface_backend_address_pool_association" "nic-backend-pool-association" {
-  count                   = var.nic_association_instances
+  count                   = var.nic_app_association_instances
   ip_configuration_name   = "ip_configuration"
   network_interface_id    = module.vm_app.*.nic_ids[count.index].id
   backend_address_pool_id = azurerm_lb_backend_address_pool.backend_address_pool.id
@@ -236,7 +243,7 @@ resource "azurerm_availability_set" "avset" {
 
 ###########/ Create Virtual Machines for WEB /#####################################
 module "vm_app" {
-  source              = "./modules/vm"
+  source = "./modules/vm"
 
   count               = var.app_instances
   index               = count.index
@@ -258,7 +265,7 @@ module "vm_app" {
 
 ###########/ Create Virtual Machines for DB /######################################
 module "vm_db" {
-  source              = "./modules/vm"
+  source = "./modules/vm"
 
   count               = var.db_instances
   index               = count.index

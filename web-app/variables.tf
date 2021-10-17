@@ -69,7 +69,11 @@ variable "nic_name" {
   description = "NIC name in Azure"
 }
 
-variable "nic_association_instances" {
+variable "nic_app_association_instances" {
+  type = number
+}
+
+variable "nic_db_association_instances" {
   type = number
 }
 
